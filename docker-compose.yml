@@ -1,0 +1,51 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: meli-mssql
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: ${MSSQL_SA_PASSWORD:-YourStrong!Passw0rd}
+    ports:
+      # Si 1433 ya está ocupado en Windows, cambiá a "11433:1433"
+      - "1433:1433"
+    volumes:
+      - mssqldata:/var/opt/mssql
+    healthcheck:
+      # Comprueba que el puerto de SQL Server esté escuchando
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/1433'"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: intranet-backend
+    env_file:
+      - ./backend/.env.docker
+    environment:
+      DB_HOST: db
+      DB_PORT: 1433
+      DB_DIALECT: mssql
+    ports:
+      - "4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: intranet-frontend
+    env_file:
+      - ./frontend/.env.docker
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  mssqldata:
