@@ -8,7 +8,6 @@ export default [
       ecmaVersion: "latest",
       sourceType: "commonjs",
       globals: {
-        // Globals de Node/built-ins que usás
         require: "readonly",
         module: "readonly",
         __dirname: "readonly",
@@ -20,7 +19,6 @@ export default [
       }
     },
     rules: {
-      // Para que el CI pase ya mismo sin tocar código:
       "no-unused-vars": "off",
       "no-undef": "error",
       "no-console": "off"
